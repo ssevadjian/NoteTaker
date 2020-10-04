@@ -36,12 +36,30 @@ app.post("/api/notes", function(req, res) {
     fs.writeFileSync(path.join(__dirname, "./db/db.json"), JSON.stringify(db));
     return res.json(db)
 })
-app.delete("api/notes/:id" , function(req, res) {
-    console.log("i'm inside app deleter function");
-    console.log("id is " + req.params.id);
-    dbJs.deleteNote(req.params.id).then(() => res.send(200))
-    .catch((err) => console.log(err));
-});
+// app.delete("api/notes/:id" , function(req, res) {
+//     console.log("i'm inside app deleter function");
+//     console.log("id is " + req.params.id);
+//     dbJs.deleteNote(req.params.id).then(() => res.send(200))
+//     .catch((err) => console.log(err));
+// });
+
+app.delete('/api/notes/:id', async function(req, res){
+    const chosen = req.params.id;
+    console.log(chosen, "what is happening")
+    id = JSON.parse(chosen)
+    console.log(id);
+    let notes = await fs.readFile('./db/db.json','utf8');
+    console.log(notes, 'logging notes')
+    var newNotes = JSON.parse(notes).filter((item) => item.id !== id);
+    
+    console.log(newNotes, 'logging new notes')
+    fs.writeFile('./db/db.json', JSON.stringify(newNotes))
+        .then(()=>{
+            res.json(newNotes);
+        })
+        console.log(`note with id of ${id} deleted from json`);
+})
+
 app.listen(PORT, function() {
     console.log("App listening on PORT " + PORT);
   });
