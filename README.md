@@ -14,8 +14,8 @@ SO THAT I can organize my thoughts and keep track of tasks I need to complete
 
 ## Screenshots
 
-![Screenshot](./assets/noteswithexpress1.png)
-![Screenshot](./assets/addnote.png)
+![Screenshot](./public/assets/noteswithexpress1.png)
+![Screenshot](./public/assets/addnote.png)
 
 # Link to live page deployed on Heroku
 
