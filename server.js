@@ -2,9 +2,7 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs");
-const db = require("./db/db.json");
 const shortid = require('shortid');
-const dbJs = require('./db/db');
 // Set up the Express App
 const app = express();
 // Creating a port deployable via Heroku
@@ -23,7 +21,13 @@ app.get("/", function(req, res) {
 });
 // Create API routes
 app.get("/api/notes", function(req, res) {
-    return res.json(db);
+    fs.readFile('./db/db.json', (e, data) => {
+        if (e) {
+            console.log(e);
+            return res.json({ error: e })
+        }
+        return res.json(JSON.parse(data));
+    })
 });
 app.post("/api/notes", function(req, res) {
     let newNote = {
@@ -32,34 +36,40 @@ app.post("/api/notes", function(req, res) {
         text: req.body.text,
     };
     console.log(newNote);
-    db.push(newNote);
-    fs.writeFileSync(path.join(__dirname, "./db/db.json"), JSON.stringify(db));
-    return res.json(db)
+    fs.readFile('./db/db.json','utf8', (e, data) => {
+        if (e) {
+            console.log(e);
+            return res.json({ error: e })
+        };
+        const array = JSON.parse(data);
+        array.push(newNote);
+        fs.writeFile(path.join(__dirname, "./db/db.json"), JSON.stringify(array), function(err) {
+            if(err) {
+                console.log(err);
+                return res.json({ error: err })
+            }
+            return res.json(array)
+        });
+    });
 })
-// app.delete("api/notes/:id" , function(req, res) {
-//     console.log("i'm inside app deleter function");
-//     console.log("id is " + req.params.id);
-//     dbJs.deleteNote(req.params.id).then(() => res.send(200))
-//     .catch((err) => console.log(err));
-// });
-
 app.delete('/api/notes/:id', async function(req, res){
     const chosen = req.params.id;
     console.log(chosen, "what is happening")
-    id = JSON.parse(chosen)
-    console.log(id);
-    let notes = await fs.readFile('./db/db.json','utf8');
-    console.log(notes, 'logging notes')
-    var newNotes = JSON.parse(notes).filter((item) => item.id !== id);
-    
-    console.log(newNotes, 'logging new notes')
-    fs.writeFile('./db/db.json', JSON.stringify(newNotes))
-        .then(()=>{
-            res.json(newNotes);
+    fs.readFile('./db/db.json','utf8', (e, data) => {
+        if (e) {
+            console.log(e);
+            return res.json({ error: e })
+        };
+        const array = JSON.parse(data);
+        const newArray = array.filter((element) => {
+            console.log('this is my element ', element);
+            return element.id !== chosen
         })
-        console.log(`note with id of ${id} deleted from json`);
+        fs.writeFile('./db/db.json', JSON.stringify(newArray), function () {
+            return res.json(newArray);
+        })
+    });
 })
-
 app.listen(PORT, function() {
     console.log("App listening on PORT " + PORT);
   });
